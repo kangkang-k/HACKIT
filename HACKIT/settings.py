@@ -6,7 +6,7 @@ SECRET_KEY = 'django-insecure-)%%+h4fz_nnsrudh*zyx=3#9!^h3kl+%3rzhsv*thoa38#qdq0
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     'django.contrib.auth',
@@ -15,9 +15,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'user'
+    'user',
+    'bounty'
 ]
-
+LOGIN_URL = '/user/login/'
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -49,7 +50,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'HACKIT.wsgi.application'
-
 
 DATABASES = {
     'default': {

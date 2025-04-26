@@ -1,9 +1,10 @@
 # models.py
 from django.db import models
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import AbstractBaseUser
 
 
-class User(models.Model):
+class User(AbstractBaseUser):
     GENDER_CHOICES = [
         ('M', 'Male'),
         ('F', 'Female'),

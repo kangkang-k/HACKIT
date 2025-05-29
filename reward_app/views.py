@@ -1,3 +1,4 @@
+import json
 from .forms import *
 from django.shortcuts import get_object_or_404
 from .models import Reward, Category, RewardApplication
@@ -154,8 +155,10 @@ class RewardApplicationAcceptAPIView(LoginRequiredMixin, View):
             return JsonResponse({'message': 'You are not allowed to modify this application.'}, status=403)
 
         application.is_accepted = True
+        reward.status = 'accepted'
 
         application.save()
+        reward.save()
 
         return JsonResponse({'message': 'RewardApplication updated successfully'}, status=200)
 
@@ -175,4 +178,37 @@ class RewardApplicationRejectAPIView(LoginRequiredMixin, View):
         return JsonResponse({'message': 'RewardApplication updated successfully'}, status=200)
 
 
+class UpdateRewardStatusAPIView(LoginRequiredMixin, View):
+    def patch(self, request, reward_id, *args, **kwargs):
+        try:
+            application = RewardApplication.objects.get(reward_id=reward_id, applicant=request.user, is_accepted=True)
+            reward = application.reward
 
+            try:
+                data = json.loads(request.body)
+                new_status = data.get('status')
+            except json.JSONDecodeError:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid JSON data'
+                }, status=400)
+
+            if new_status not in dict(Reward.STATUS_CHOICES).keys():
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid status value'
+                }, status=400)
+
+            reward.status = new_status
+            reward.save()
+
+            return JsonResponse({
+                'success': True,
+                'reward': model_to_dict(reward)
+            }, status=200)
+
+        except RewardApplication.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'You have not applied for this reward or it was not accepted'
+            }, status=404)

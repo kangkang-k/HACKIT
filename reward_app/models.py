@@ -13,6 +13,8 @@ class Category(models.Model):
 
 class Reward(models.Model):
     STATUS_CHOICES = [
+        ('accepted', 'Accepted'),
+        ('waiting', 'Waiting'),
         ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
@@ -40,4 +42,3 @@ class RewardApplication(models.Model):
 
     def __str__(self):
         return f"{self.applicant.username} - {self.reward.title}"
-

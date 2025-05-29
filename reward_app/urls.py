@@ -17,5 +17,7 @@ urlpatterns = [
          name='application_accept'),
     path('application_reject/<int:application_id>/', views.RewardApplicationRejectAPIView.as_view(),
          name='application_reject'),
+    path('updatestatus/<int:reward_id>/', views.UpdateRewardStatusAPIView.as_view(),
+         name='updatestatus'),
 
 ]

@@ -122,6 +122,11 @@ class ListRewardsAPIView(LoginRequiredMixin, View):
         rewards_list = [model_to_dict(reward) for reward in rewards]
         return JsonResponse({'success': True, 'rewards': rewards_list}, status=200)
 
+class ListWaitingRewardsAPIView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        waiting_rewards = Reward.objects.filter(status='waiting')
+        rewards_list = [model_to_dict(reward) for reward in waiting_rewards]
+        return JsonResponse({'success': True, 'rewards': rewards_list}, status=200)
 
 class RewardApplicationCreateAPIView(View):
     def post(self, request, *args, **kwargs):

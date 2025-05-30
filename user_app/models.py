@@ -8,6 +8,7 @@ class CustomUser(AbstractUser):
     completed_tasks = models.IntegerField(default=0)
     bio = models.TextField(blank=True, null=True)
     code_age = models.IntegerField(default=0)
+    balance = models.FloatField(default=0)
 
 
 class Skill(models.Model):

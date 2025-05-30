@@ -13,12 +13,13 @@ class Category(models.Model):
 
 class Reward(models.Model):
     STATUS_CHOICES = [
-        ('accepted', 'Accepted'),
-        ('waiting', 'Waiting'),
-        ('pending', 'Pending'),
-        ('in_progress', 'In Progress'),
-        ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
+        ('applied', 'Applied'),  # 已被接单
+        ('waiting', 'Waiting'),  # 挂单中
+        ('in_progress', 'In Progress'),  # 开发中
+        ('completed', 'Completed'),  # 开发完成
+        ('completed', 'Completed'),  # 开发完成
+        ('payed', 'Payed'),  # 已结款
+        ('cancelled', 'Cancelled'),  # 已取消
     ]
 
     title = models.CharField(max_length=200)
@@ -28,7 +29,7 @@ class Reward(models.Model):
     reward_amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='accepted')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='waiting')
 
     def __str__(self):
         return self.title

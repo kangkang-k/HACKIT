@@ -4,6 +4,7 @@ from .models import CustomUser
 
 User = get_user_model()
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -18,9 +19,13 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-
-
 class UserSerializer2(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['phone_number', 'birth_date', 'completed_tasks', 'bio', 'code_age']
+
+
+class BalanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['balance']

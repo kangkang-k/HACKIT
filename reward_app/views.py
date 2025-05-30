@@ -1,7 +1,7 @@
 import json
 from .forms import *
 from django.shortcuts import get_object_or_404
-from .models import Reward, Category, RewardApplication
+from .models import *
 from django.views import View
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
@@ -98,8 +98,8 @@ class UpdateRewardAPIView(LoginRequiredMixin, View):
         except Reward.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Reward not found or not authorized.'}, status=404)
 
-        if reward.status != 'pending':
-            return JsonResponse({'success': False, 'message': 'Only rewards with status "Pending" can be modified.'},
+        if reward.status != 'waiting':
+            return JsonResponse({'success': False, 'message': 'Only rewards with status "Waiting" can be modified.'},
                                 status=403)
 
         form = RewardForm(request.POST, instance=reward)
@@ -122,11 +122,13 @@ class ListRewardsAPIView(LoginRequiredMixin, View):
         rewards_list = [model_to_dict(reward) for reward in rewards]
         return JsonResponse({'success': True, 'rewards': rewards_list}, status=200)
 
+
 class ListWaitingRewardsAPIView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         waiting_rewards = Reward.objects.filter(status='waiting')
         rewards_list = [model_to_dict(reward) for reward in waiting_rewards]
         return JsonResponse({'success': True, 'rewards': rewards_list}, status=200)
+
 
 class RewardApplicationCreateAPIView(View):
     def post(self, request, *args, **kwargs):
@@ -135,6 +137,9 @@ class RewardApplicationCreateAPIView(View):
             application = form.save(commit=False)
             application.applicant = request.user
             application.save()
+            reward = Reward.objects.get(id=request.POST['reward'])
+            reward.status = 'applied'
+            reward.save()
             return JsonResponse({'id': application.id, 'message': 'RewardApplication created successfully'}, status=201)
         return JsonResponse(form.errors, status=400)
 
@@ -146,7 +151,9 @@ class RewardApplicationDeleteAPIView(View):
 
         # 删除对象
         application.delete()
-
+        reward = Reward.objects.get(id=application_id)
+        reward.status = 'waiting'
+        reward.save()
         # 返回成功响应
         return JsonResponse({'message': 'RewardApplication deleted successfully'}, status=204)
 
@@ -160,7 +167,7 @@ class RewardApplicationAcceptAPIView(LoginRequiredMixin, View):
             return JsonResponse({'message': 'You are not allowed to modify this application.'}, status=403)
 
         application.is_accepted = True
-        reward.status = 'accepted'
+        reward.status = 'in_progress'
 
         application.save()
         reward.save()
@@ -178,42 +185,28 @@ class RewardApplicationRejectAPIView(LoginRequiredMixin, View):
 
         application.is_accepted = False
 
+        reward.status = 'waiting'
+
         application.save()
+        reward.save()
 
         return JsonResponse({'message': 'RewardApplication updated successfully'}, status=200)
 
 
-class UpdateRewardStatusAPIView(LoginRequiredMixin, View):
-    def patch(self, request, reward_id, *args, **kwargs):
-        try:
-            application = RewardApplication.objects.get(reward_id=reward_id, applicant=request.user, is_accepted=True)
-            reward = application.reward
+class CompleteRewardAPIView(LoginRequiredMixin, View):
+    def post(self, request, reward_id, *args, **kwargs):
+        application = get_object_or_404(
+            RewardApplication,
+            reward_id=reward_id,
+            applicant=request.user,
+            is_accepted=True
+        )
 
-            try:
-                data = json.loads(request.body)
-                new_status = data.get('status')
-            except json.JSONDecodeError:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Invalid JSON data'
-                }, status=400)
+        reward = application.reward
+        reward.status = "completed"
+        reward.save()
 
-            if new_status not in dict(Reward.STATUS_CHOICES).keys():
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Invalid status value'
-                }, status=400)
-
-            reward.status = new_status
-            reward.save()
-
-            return JsonResponse({
-                'success': True,
-                'reward': model_to_dict(reward)
-            }, status=200)
-
-        except RewardApplication.DoesNotExist:
-            return JsonResponse({
-                'success': False,
-                'message': 'You have not applied for this reward or it was not accepted'
-            }, status=404)
+        return JsonResponse({
+            'success': True,
+            'reward': model_to_dict(reward)
+        }, status=200)

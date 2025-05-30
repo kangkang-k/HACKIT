@@ -7,7 +7,7 @@ from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import UserSerializer, UserSerializer2
+from .serializers import UserSerializer, UserSerializer2, BalanceSerializer
 
 
 @csrf_exempt
@@ -72,6 +72,21 @@ class UserUpdateView2(APIView):
     def patch(self, request, *args, **kwargs):
         user = self.get_object()
         serializer = UserSerializer2(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BalanceUpdateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def patch(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = BalanceSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

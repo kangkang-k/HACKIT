@@ -9,5 +9,4 @@ urlpatterns = [
     path('update2/', views.UserUpdateView2.as_view(), name='update2'),
     path('change_password/', views.change_password, name='change_password'),
     path('balance_update/', views.BalanceUpdateView.as_view(), name='balance_update'),
-
 ]
